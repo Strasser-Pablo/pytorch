@@ -27,6 +27,7 @@ private:
   void visitListConstruct(Node* n, Block* block, Block* res_block);
   void visitIf(Node* n, Block* block, Block* res_block);
   void visitLoop(Node* n, Block* block, Block* res_block);
+  void visitPrint(Node* n, Block* block, Block* res_block);
 
 public:
   static std::unordered_map<std::string, std::vector<std::shared_ptr<Graph>>> batch_operator_table;

@@ -86,6 +86,13 @@ void ToBatch::visitConstant(Node* n, Block* block, Block* res_block){
   rn_env[n->output()] = r_node->output();
 }
 
+void ToBatch::visitPrint(Node* n, Block* block, Block* res_block){
+  auto res_graph = res_block->owningGraph();
+  auto* r_node = res_graph->createClone(n, rn_fn);
+  r_node->setStage(n->stage());
+  res_block->appendNode(r_node);
+}
+
 // change return tensor to expanded batched tensor, eg: {data, mask, dims}
 void ToBatch::visitNumToTensor(Node* n, Block* block, Block* res_block){
   auto res_graph = res_block->owningGraph();
@@ -502,6 +509,9 @@ void ToBatch::toBatch(Block* block, Block* res_block) {
           break;
         case prim::Loop:
           visitLoop(n, block, res_block);
+          break;
+        case prim::Print:
+          visitPrint(n, block, res_block);
           break;
         default:
           throw std::runtime_error("NYI: node of prim kind other than [Constant, NumToTensor, TensorToNum, If, Loop] is not supported yet");
