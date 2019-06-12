@@ -35,7 +35,6 @@ bool isSimpleMap(Node* node) {
   static OperatorSet simple_mappable{{
       "aten::_cast_Float(Tensor self, bool non_blocking) -> Tensor",
         
-      "user::gradclamp(Tensor self, Scalar? min, Scalar? max) -> Tensor",
       "aten::abs(Tensor self) -> Tensor",
       "aten::acos(Tensor self) -> Tensor",
       "aten::add(Tensor self, Tensor other, *, Scalar alpha) -> Tensor",
