@@ -618,9 +618,15 @@ struct GraphExecutorImpl : public GraphExecutorImplBase {
   }
 
   void runNondiffOptimization(std::shared_ptr<Graph>& graph) {
+    std::cout<<"start Non Diff Optimization "<<std::endl;
+    graph->dump();
     // run custom passes that different backends can register
     for (const auto& pass : getCustomPasses()) {
+      std::cout<<"custom Passes"<<std::endl;
+      graph->dump();
       pass(graph);
+      std::cout<<"custom Passes done"<<std::endl;
+      graph->dump();
     }
     // decomposition pass, decompose certain ops that will be used in the
     // following passes (like batchmm and jit fusion)
@@ -628,7 +634,11 @@ struct GraphExecutorImpl : public GraphExecutorImplBase {
     // Rewrite subgraphs with many MMs into expressions that batch them.
     BatchMM(graph);
 
+    std::cout<<"Do Fuse"<<std::endl;
+    graph->dump();
     FuseGraph(graph);
+    std::cout<<"Fuse Done"<<std::endl;
+    graph->dump();
   }
 
   static bool needsGradient(const std::shared_ptr<const Graph>& graph) {
