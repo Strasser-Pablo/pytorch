@@ -208,8 +208,10 @@ struct GraphFuser {
     // We don't want to bother with cross-block node movements, as they
     // are not necessarily correct.
     if (node->owningBlock() != block_)
+    {
       std::cout<<"not fusable doesn't own block"<<std::endl;
       return false;
+    }
     if (node->kind() == aten::_grad_sum_to_size) {
         std::cout<<"grad sum to size"<<std::endl;
       // We only fuse _grad_sum_to_size if
