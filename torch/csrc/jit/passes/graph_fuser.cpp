@@ -1319,6 +1319,8 @@ bool trackSingleGradSumToSizeToOutputs(
 }
 
 void FuseGraph(std::shared_ptr<Graph>& graph) {
+  std::cout<<"start Fuse Graph"<<std::endl;
+  graph->dump();
   GraphFuser(graph->block(), graph).run();
   // After FuseGraph some common subexpressions may come back
   EliminateCommonSubexpression(graph);
@@ -1333,6 +1335,8 @@ void CustomFuseGraph(
     std::shared_ptr<Graph>& graph,
     std::function<bool(Node*)> fn,
     Symbol kind) {
+  std::cout<<"start Custom Fuse Graph"<<std::endl;
+  graph->dump();
   GraphFuser(
       graph->block(),
       graph,
