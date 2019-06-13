@@ -1329,6 +1329,8 @@ void FuseGraph(std::shared_ptr<Graph>& graph) {
   EliminateDeadCode(graph);
   // Improve the quality of shape propagation code that was left
   PeepholeOptimizeShapeExpressions(graph->block());
+  std::cout<<"result Fuse Graph"<<std::endl;
+  graph->dump();
 }
 
 void CustomFuseGraph(
@@ -1343,6 +1345,8 @@ void CustomFuseGraph(
       [=](Node* n) { return fn(n) || n->kind() == kind; },
       kind)
       .run();
+  std::cout<<"result Custom Fuse Graph"<<std::endl;
+  graph->dump();
 }
 
 } // namespace jit
