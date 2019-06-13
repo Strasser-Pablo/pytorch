@@ -32,7 +32,7 @@ namespace {
 // Some of these restrictions may be relaxable, but you should
 // carefully read the code first, as we rely on these assumptions.
 bool isSimpleMap(Node* node) {
-    std::cout<<"is Simple Map name "<<Node->name()<<std::endl;
+    std::cout<<"is Simple Map name "<<node->name()<<std::endl;
   static OperatorSet simple_mappable{{
       "aten::_cast_Float(Tensor self, bool non_blocking) -> Tensor",
         
