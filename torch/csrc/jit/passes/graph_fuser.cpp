@@ -107,6 +107,7 @@ bool isSimpleMap(Node* node) {
       "aten::type_as(Tensor self, Tensor other) -> Tensor",
   }};
   if (!simple_mappable.find(node)) {
+    std::cout<<"not fusable"<<std::endl;
     return false;
   }
   for (Value* input : node->inputs()) {
@@ -115,9 +116,11 @@ bool isSimpleMap(Node* node) {
       continue;
     }
     if (input->node()->kind() != prim::Constant) {
+        std::cout<<"not fusable"<<std::endl;
       return false;
     }
   }
+  std::cout<<"ok fusable"<<std::endl;
   return true;
 }
 
@@ -173,11 +176,14 @@ struct GraphFuser {
   bool isFusableDevice(Value *v) {
     auto tensor_type = v->type()->cast<DimensionedTensorType>();
     if (!tensor_type) {
+        std::cout<<"not tensor so fuseable"<<std::endl;
       return true;
     }
     if (tensor_type->device().is_cpu()) {
+      std::cout<<"check can fuse cpu"<<std::endl;
       return canFuseOnCPU();
     } else if (tensor_type->device().is_cuda()) {
+      std::cout<<"check can fuse gpu"<<std::endl;
       return canFuseOnGPU();
     }
     throw std::runtime_error("Unknown device");
@@ -188,11 +194,13 @@ struct GraphFuser {
   // a callback.
   bool isFusableDefault(Node* node) {
     bool fusableDevice = true;
+    std::cout<<"default fusable check"<<std::endl;
     for (const auto& output : node->outputs()) {
       if (output->uses().size() > 0) {
         fusableDevice &= isFusableDevice(output);
       }
     }
+    std::cout<<"is fusable device "<<fusableDevice<<std::endl;
     return fusableDevice && isFusableMap(node);
   }
 
@@ -200,8 +208,10 @@ struct GraphFuser {
     // We don't want to bother with cross-block node movements, as they
     // are not necessarily correct.
     if (node->owningBlock() != block_)
+      std::cout<<"not fusable doesn't own block"<<std::endl;
       return false;
     if (node->kind() == aten::_grad_sum_to_size) {
+        std::cout<<"grad sum to size"<<std::endl;
       // We only fuse _grad_sum_to_size if
       // - we will fuse its input next (checked here)
       // - we can commute the _grad_sum_to_size with everything
@@ -423,13 +433,16 @@ struct GraphFuser {
         // an output of the fusion group.
         aliasDb_->moveBeforeTopologicallyValid(producer->node(), consumer);
 
+    std::cout<<"should fuse "<<shouldFuse<<std::endl;
     if (!shouldFuse) {
+      std::cout<<"we cannot fuse"<<std::endl;
       return at::nullopt;
     }
 
     if ((consumer->inputs().size() + consumer->outputs().size() +
          producer->node()->inputs().size() +
          producer->node()->outputs().size()) > fusion_kernel_args_limit) {
+        std::cout<<"consumer problem"<<std::endl;
       return at::nullopt;
     }
 
@@ -444,6 +457,7 @@ struct GraphFuser {
           auto subgraph = &getSubgraph(consumer);
           if (!trackSingleGradSumToSizeToOutputs(
                   subgraph->inputs().at(u.offset), nullptr)) {
+            std::cout<<"problem Grad sum"<<std::endl;
             return at::nullopt;
           }
         }
@@ -477,6 +491,7 @@ struct GraphFuser {
 
   bool canFuseChunk(Node* consumer, Value* producer) {
     if (consumer->kind() != prim::FusionGroup) {
+        std::cout<<"cannot fuse chunk"<<std::endl;
       return false;
     }
     // Does the chunk have constant chunks/dim?
@@ -494,6 +509,7 @@ struct GraphFuser {
     // And isn't a no-op chunk (chunks == 1). Have CSE clean this up.
     // We could fuse this but it's better to just delete the node.
     if (chunk->i(attr::chunks) == 1) {
+        std::cout<<"no up chunk"<<std::endl;
       return false;
     }
     return true;
@@ -503,6 +519,7 @@ struct GraphFuser {
     AT_ASSERT(group->kind() == prim::FusionGroup);
     auto it = std::find(group->inputs().begin(), group->inputs().end(), input);
     if (it == group->inputs().end()) {
+        std::cout<<"Find Fused Chunk"<<std::endl;
       return c10::nullopt;
     }
     size_t input_index = it - group->inputs().begin();
@@ -514,6 +531,7 @@ struct GraphFuser {
       AT_ASSERT(subgraph_input->uses().size() == 1);
       return node;
     }
+    std::cout<<"end Fused Chunk"<<std::endl;
     return c10::nullopt;
   }
 
@@ -1011,12 +1029,14 @@ struct GraphFuser {
 
   bool canFuseWithConcat(Value* producer, Node* before_check) {
     if (!isFusable(producer->node())) {
+        std::cout<<"Concat Can Fuse"<<std::endl;
       return false;
     }
     // NB: it is important that this check happens after isFusable, which checks
     // that the blocks match, and it's not a special node like prim::Param
     if (!aliasDb_->couldMoveBeforeTopologically(
             producer->node(), before_check)) {
+        std::cout<<"Concat Topological Problem"<<std::endl;
       return false;
     }
 
@@ -1024,6 +1044,7 @@ struct GraphFuser {
     if ((before_check->inputs().size() + before_check->outputs().size() +
          producer->node()->inputs().size() +
          producer->node()->outputs().size()) > fusion_kernel_args_limit) {
+        std::cout<<"NB kernel more than limit"<<std::endl;
       return false;
     }
 
@@ -1036,6 +1057,7 @@ struct GraphFuser {
       return node->kind() != prim::FusedConcat &&
           !containsGradSumToSize(producer->node());
     }
+    std::cout<<"ok can fuse concat"<<std::endl;
     return true;
   }
 
