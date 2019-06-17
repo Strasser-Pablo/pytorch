@@ -23,6 +23,13 @@ class SubgraphSlicer {
         minSubgraphSize_(minSubgraphSize) {}
 
   void run(std::vector<Node*>& diffGraphs) {
+    std::cout<<"SubGraph Slicer "<<std::endl;
+    for(auto mynode : diffGraphs)
+    {
+        std::cout<<"node "<<std::endl;
+        mynode->dump();
+    }
+    std::cout<<"done"<<std::endl;
     // We need to run the slicer multiple times in order to get all merge
     // opportunities. This is because moveBeforeTopologicalValid may reorder
     // nodes to be AFTER the current iteration point. In order to properly
@@ -54,11 +61,7 @@ class SubgraphSlicer {
     auto curNode = *block_->nodes().rbegin();
     while (curNode != *block_->nodes().rend()) {
       for (auto subBlock : curNode->blocks()) {
-        std::cout<<"bef subBlock "<<std::endl;
-        subBlock->dump();
         SubgraphSlicer(subBlock, graph_, minSubgraphSize_).run(diffGraphs);
-        std::cout<<"aft subBlock "<<std::endl;
-        subBlock->dump();
       }
 
       // Save the previous node, since we might delete `curNode` in next block
