@@ -536,7 +536,7 @@ struct GraphExecutorImpl : public GraphExecutorImplBase {
       std::lock_guard<std::mutex> lock(compile_mutex);
       auto it = plan_cache.find(spec);
       if (it != plan_cache.end()) {
-        std::cout<<"cached"<<std::endl
+        std::cout<<"cached"<<std::endl;
         logging::getLogger()->addStatValue(
             logging::runtime_counters::EXECUTION_PLAN_CACHE_HIT, 1.0);
         return it->second;
