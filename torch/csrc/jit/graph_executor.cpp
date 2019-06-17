@@ -515,28 +515,33 @@ struct GraphExecutorImpl : public GraphExecutorImplBase {
   friend struct GraphExecutor;
 
   const ExecutionPlan& getOrCompileFallback() {
+    std::cout<<"get or Compile FallBack"<<std::endl;
     std::lock_guard<std::mutex> lock(compile_mutex);
     if (!fallback) {
       auto graph_ = graph->copy();
       runRequiredPasses(graph_);
       fallback = ExecutionPlan(graph_);
     }
+    std::cout<<"done"<<std::endl;
     return fallback;
   }
 
   const ExecutionPlan& getOrCompile(const Stack& stack) {
     // outside lock guard, to minimize the time holding the lock on the fast
     // path ArgumentSpec even computes its hashCode here.
+    std::cout<<"get or compile"<<std::endl;
     ArgumentSpec spec =
         arg_spec_creator_.create(autograd::GradMode::is_enabled(), stack);
     {
       std::lock_guard<std::mutex> lock(compile_mutex);
       auto it = plan_cache.find(spec);
       if (it != plan_cache.end()) {
+        std::cout<<"cached"<<std::endl
         logging::getLogger()->addStatValue(
             logging::runtime_counters::EXECUTION_PLAN_CACHE_HIT, 1.0);
         return it->second;
       }
+      std::cout<<"not cached"<<std::endl;
       auto plan = compileSpec(spec);
       auto r = plan_cache.emplace(std::move(spec), std::move(plan));
       logging::getLogger()->addStatValue(
@@ -547,34 +552,50 @@ struct GraphExecutorImpl : public GraphExecutorImplBase {
 
   ExecutionPlan compileSpec(const ArgumentSpec& spec) {
     auto opt_graph = graph->copy();
+    std::cout<<"compiling graph"<<std::endl;
+    opt_graph->dump();
     arg_spec_creator_.specializeTypes(*opt_graph, spec);
+    std::cout<<"specialize"<<std::endl;
+    opt_graph->dump();
 
     // Phase 1. Specialize to input definedness (this is very important for
     //          gradient graphs), and run required passes to bring the graph
     //          to an executable form.
+    std::cout<<"run required"<<std::endl;
     runRequiredPasses(opt_graph);
+    opt_graph->dump();
 
     // Phase 2. Propagate detailed information about the spec through the
     //          graph (enabled more specializations in later passes).
     //          Shape propagation sometimes depends on certain arguments being
     //          constants, and constant propagation doesn't need shape
     //          information anyway, so it's better to run it first.
+    std::cout<<"constant propagation"<<std::endl;
     ConstantPropagation(opt_graph);
+    opt_graph->dump();
+    std::cout<<"Propagate Input Shape"<<std::endl;
     PropagateInputShapes(opt_graph);
+    opt_graph->dump();
+    std::cout<<"Propagate require gradient"<<std::endl;
     PropagateRequiresGrad(opt_graph);
+    opt_graph->dump();
 
     // Phase 3. Run differentiable optimizations (i.e. simple graph rewrites
     //          that we can still execute using autograd).
+    std::cout<<"Simple Optimization"<<std::endl;
     runOptimization(opt_graph);
+    opt_graph->dump();
 
     // Phase 4. If this graph will be differentiated, we need to slice out the
     //          symbolically differentiable subgraphs for further optimizations.
     // Phase 5. Apply non-differentiable optimizations to the graphs we've found
     //          (or the whole grpah if we know we won't need its derivative).
     if (needsGradient(opt_graph)) {
+        std::cout<<"We need gradient"<<std::endl;
       auto diff_nodes = CreateAutodiffSubgraphs(
           opt_graph,
           autodiff_subgraph_inlining ? autodiffSubgraphNodeThreshold : 1);
+          opt_graph->dump();
       for (Node* dnode : diff_nodes) {
         auto diff_graph = std::move(dnode->g(attr::Subgraph));
         Gradient gradient = differentiate(diff_graph);
@@ -589,14 +610,22 @@ struct GraphExecutorImpl : public GraphExecutorImplBase {
         runNondiffOptimization(gradient.f);
         packGradient(gradient, dnode);
       }
+      std::cout<<"Bef Inline AutoDiff Subgraphs"<<std::endl;
+      opt_graph->dump();
       InlineAutodiffSubgraphs(
           opt_graph,
           autodiff_subgraph_inlining ? autodiffSubgraphInlineThreshold : 1);
+      std::cout<<"aft "<<std::endl;
+      opt_graph->dump();
     } else {
       runNondiffOptimization(opt_graph);
     }
+    std::cout<<"bef dead code elimination"<<std::endl;
+    opt_graph->dump();
     // Make sure there are no leftovers from any passes.
     EliminateDeadCode(opt_graph);
+    std::cout<<"aft dead code elimination"<<std::endl;
+    opt_graph->dump();
     return ExecutionPlan(opt_graph);
   }
 
