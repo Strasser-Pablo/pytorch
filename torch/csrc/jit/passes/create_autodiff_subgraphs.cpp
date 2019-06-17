@@ -23,6 +23,8 @@ class SubgraphSlicer {
         minSubgraphSize_(minSubgraphSize) {}
 
   void run(std::vector<Node*>& diffGraphs) {
+    std::cout<<"graph "<<std::endl;
+    graph->dump();
     std::cout<<"SubGraph Slicer "<<std::endl;
     for(auto mynode : diffGraphs)
     {
