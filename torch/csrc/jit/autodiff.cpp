@@ -48,7 +48,6 @@ bool needTrimGrad(Node* n) {
 bool isDifferentiable(Node* n) {
   // TODO: scalar-tensor ops should be canonicalized
   static OperatorSet differentiable_ops = {
-      "user::gradclamp(Tensor self, Scalar? min, Scalar? max) -> Tensor",
       "aten::add(Tensor self, Tensor other, *, Scalar alpha) -> Tensor",
       "aten::add(Tensor self, Scalar other, Scalar alpha) -> Tensor",
       "aten::sub(Tensor self, Tensor other, *, Scalar alpha) -> Tensor",

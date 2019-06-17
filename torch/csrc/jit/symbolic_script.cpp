@@ -1291,7 +1291,14 @@ const std::vector<std::string> functions = {
                 return grad_self, None, None, None, None
 
             return torch.__interpolate(input, size, scale_factor, mode, align_corners), backward
-
+    )",
+    R"(
+        def gradclamp(self,min: Optional[float],max: Optional[float]):
+            def backward(grad_output):
+                grad_self = grad_output.clamp(min,max)
+                grad_mat2 = AD_mm_backward_mat2(grad_output, self)
+                return grad_self, None, None
+            return self, backward
       )"};
 std::unordered_map<std::string, GradientPair> schema_to_graphs;
 
