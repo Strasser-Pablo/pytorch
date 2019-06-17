@@ -598,7 +598,13 @@ struct GraphExecutorImpl : public GraphExecutorImplBase {
           opt_graph->dump();
       for (Node* dnode : diff_nodes) {
         auto diff_graph = std::move(dnode->g(attr::Subgraph));
+        std::cout<<"diff graph "<<std::endl;
+        diff_graph->dump();
         Gradient gradient = differentiate(diff_graph);
+        std::cout<<"gradient graph f"<<std::endl;
+        gradient.f->dump();
+        std::cout<<"gradient graph df"<<std::endl;
+        gradient.df->dump();
         // Run post differentiation optimizations, Autodiff will replace some
         // parts of graph with new graph, these new graphs usually consists of
         // control flows and miss shape information on nodes, so we run shape
@@ -607,7 +613,11 @@ struct GraphExecutorImpl : public GraphExecutorImplBase {
         PropagateInputShapes(gradient.f);
         runOptimization(gradient.f);
         // run non diff optimization on the forward graph
+        std::cout<<"bef non diff optimization"<<std::endl;
+        gradient.df->dump();
         runNondiffOptimization(gradient.f);
+        std::cout<<"aft non diff optimization"<<std::endl;
+        gradient.df->dump();
         packGradient(gradient, dnode);
       }
       std::cout<<"Bef Inline AutoDiff Subgraphs"<<std::endl;
