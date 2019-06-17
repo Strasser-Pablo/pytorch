@@ -1296,7 +1296,6 @@ const std::vector<std::string> functions = {
         def gradclamp(self,min: Optional[float],max: Optional[float]):
             def backward(grad_output):
                 grad_self = grad_output.clamp(min,max)
-                grad_mat2 = AD_mm_backward_mat2(grad_output, self)
                 return grad_self, None, None
             return self, backward
       )"};
