@@ -54,7 +54,11 @@ class SubgraphSlicer {
     auto curNode = *block_->nodes().rbegin();
     while (curNode != *block_->nodes().rend()) {
       for (auto subBlock : curNode->blocks()) {
+        std::cout<<"bef subBlock "<<std::endl;
+        subBlock->dump();
         SubgraphSlicer(subBlock, graph_, minSubgraphSize_).run(diffGraphs);
+        std::cout<<"aft subBlock "<<std::endl;
+        subBlock->dump();
       }
 
       // Save the previous node, since we might delete `curNode` in next block
@@ -170,6 +174,8 @@ class SubgraphSlicer {
 std::vector<Node*> CreateAutodiffSubgraphs(
     const std::shared_ptr<Graph>& graph,
     size_t threshold) {
+    std::cout<<"Start Create AutodiffSubgraphs "<<std::endl;
+    graph->dump();
   std::vector<Node*> diff_nodes;
   SubgraphSlicer(graph->block(), graph, threshold).run(diff_nodes);
   return diff_nodes;
