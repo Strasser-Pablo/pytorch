@@ -24,7 +24,7 @@ class SubgraphSlicer {
 
   void run(std::vector<Node*>& diffGraphs) {
     std::cout<<"graph "<<std::endl;
-    graph->dump();
+    graph_->dump();
     std::cout<<"SubGraph Slicer "<<std::endl;
     for(auto mynode : diffGraphs)
     {
