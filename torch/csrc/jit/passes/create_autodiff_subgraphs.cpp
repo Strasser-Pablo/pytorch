@@ -131,13 +131,19 @@ class SubgraphSlicer {
   }
 
   bool shouldConsiderForMerge(Node* node) {
+    std::cout<<"should we merge?"<<std::endl;
+    node->dump();
     // if we're already in the process of merging
     if (node->kind() == prim::DifferentiableGraph) {
+        std::cout<<"differentiable graph so yes"<<std::endl;
       return true;
     }
     if (node->kind() == prim::Constant) {
+        std::cout<<"constant so no"<<std::endl;
       return false;
     }
+    bool bres=isDifferentiable(node);
+    std::cout<<"Is Differentiable "<<bres<<std::endl;
     return isDifferentiable(node);
   }
 
@@ -168,15 +174,24 @@ class SubgraphSlicer {
       Node* consumer,
       Node* producer,
       AliasDb& aliasDb) {
+      std::cout<<"try Merge"<<std::endl;
+      consumer->dump();
+      std::cout<<"producer"<<std::endl;
+      producer->dump();
     AT_ASSERT(consumer->kind() == prim::DifferentiableGraph);
     bool canMerge = shouldConsiderForMerge(producer) &&
         aliasDb.moveBeforeTopologicallyValid(producer, consumer);
 
     if (!canMerge) {
+        std::cout<<"cannot merge"<<std::endl;
       return c10::nullopt;
     }
 
     SubgraphUtils::mergeNodeIntoSubgraph(producer, consumer);
+    std::cout<<"ok can merge"<<std::endl;
+    consumer->dump();
+    std::cout<<"producer"<<std::endl;
+    producer->dump();
 
     return consumer;
   }
