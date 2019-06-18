@@ -1421,20 +1421,23 @@ c10::optional<GradientPair> gradientInfoForSchema(
   }
   auto cache_it = cached_gradient_pairs.find(&schema);
   if (cache_it != cached_gradient_pairs.end()) {
+    std::cout<<"ok use carch"<<std::endl;
     return cache_it->second;
   } else {
     auto schema_str = canonicalSchemaString(schema);
     // For debugging AD change:
-    // std::cout << "Looking for " << schema_str << std::endl;
+     std::cout << "Looking for " << schema_str << std::endl;
 
     auto sym_script_it = schema_to_graphs.find(schema_str);
 
     if (sym_script_it != schema_to_graphs.end()) {
       cached_gradient_pairs.emplace_hint(
           cache_it, &schema, sym_script_it->second);
+      std::cout<<"ok found returning"<<std::endl;
       return sym_script_it->second;
     }
   }
+  std::cout<<"not found"<<std::endl;
   return c10::nullopt;
 }
 

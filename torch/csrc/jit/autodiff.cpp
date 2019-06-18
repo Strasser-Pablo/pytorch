@@ -93,8 +93,11 @@ bool isDifferentiable(Node* n) {
         n->is_constant(attr::implicit);
   }
 
+  std::cout<<"is Differentiable"<<std::endl;
+  n->dump();
   auto schema = n->maybeSchema();
   if (schema && hasGradientInfoForSchema(*schema)) {
+      std::cout<<"ok is Differentiable"<<std::endl;
     return true;
   }
 
