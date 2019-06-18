@@ -1300,7 +1300,6 @@ const std::vector<std::string> functions = {
                 return grad_self, None, None
             return self, backward
       )"};
-};
 std::unordered_map<std::string, GradientPair> schema_to_graphs;
 
 // This map is a workaround to cache compiled gradient_pairs. Ideally this graph
