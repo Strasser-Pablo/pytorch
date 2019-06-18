@@ -23,9 +23,10 @@ class SubgraphSlicer {
         minSubgraphSize_(minSubgraphSize) {}
 
   void run(std::vector<Node*>& diffGraphs) {
-    std::cout<<"graph "<<std::endl;
+    std::cout<<"graph run "<<std::endl;
     graph_->dump();
-    std::cout<<"SubGraph Slicer "<<std::endl;
+    std::cout<<"num slice "<<diffGraphs.size()<<std::endl;
+    std::cout<<"SubGraph Slicer run"<<std::endl;
     for(auto mynode : diffGraphs)
     {
         std::cout<<"node "<<std::endl;
@@ -47,24 +48,33 @@ class SubgraphSlicer {
     //   e = f(d)  <- iter still here
     //   d = f(c)  <- this was node moved on the other side.
     bool any_changed = true;
+    std::cout<<"start loop"<<std::endl;
     while (any_changed) {
       any_changed = false;
       AliasDb aliasDb(graph_);
+      std::cout<<"start for"<<std::endl;
       for (auto it = block_->nodes().rbegin(); it != block_->nodes().rend();) {
         bool changed;
         std::tie(it, changed) = scanNode(*it, aliasDb);
         any_changed |= changed;
+        std::cout<<"in for"<<std::endl;
       }
+      std::cout<<"end for"<<std::endl;
     }
+    std::cout<<"end while"<<std::endl;
 
     // Done constructing subgraphs. Do some post-processing cleanup:
     // 1. Run CSE to delete redundanet constant nodes.
     // 2. We may need to re-inline ones that are too small.
     auto curNode = *block_->nodes().rbegin();
+    std::cout<<"while pre"<<std::endl;
     while (curNode != *block_->nodes().rend()) {
+        std::cout<<"bef for"<<std::endl;
       for (auto subBlock : curNode->blocks()) {
+          std::cout<<"in for"<<std::endl;
         SubgraphSlicer(subBlock, graph_, minSubgraphSize_).run(diffGraphs);
       }
+      std::cout<<"for done"<<std::endl;
 
       // Save the previous node, since we might delete `curNode` in next block
       auto prevNode = curNode->prev();
@@ -80,6 +90,7 @@ class SubgraphSlicer {
       }
       curNode = prevNode;
     }
+    std::cout<<"while done"<<std::endl;
     // Run CSE one more time to eliminate duplicates that may have occured
     // while re-inlining subgraphs.
     EliminateCommonSubexpression(graph_);
@@ -183,6 +194,8 @@ std::vector<Node*> CreateAutodiffSubgraphs(
     graph->dump();
   std::vector<Node*> diff_nodes;
   SubgraphSlicer(graph->block(), graph, threshold).run(diff_nodes);
+  std::cout<<"End AutodiffSubgraphs"<<std::endl;
+  std::cout<<"nb diff "<<diff_nodes.size()<<std::endl;
   return diff_nodes;
 }
 } // namespace jit

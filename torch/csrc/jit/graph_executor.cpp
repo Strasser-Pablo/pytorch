@@ -519,6 +519,8 @@ struct GraphExecutorImpl : public GraphExecutorImplBase {
     std::lock_guard<std::mutex> lock(compile_mutex);
     if (!fallback) {
       auto graph_ = graph->copy();
+      std::cout<<"not fallback "<<std::endl;
+      graph_->dump();
       runRequiredPasses(graph_);
       fallback = ExecutionPlan(graph_);
     }
@@ -596,6 +598,7 @@ struct GraphExecutorImpl : public GraphExecutorImplBase {
           opt_graph,
           autodiff_subgraph_inlining ? autodiffSubgraphNodeThreshold : 1);
           opt_graph->dump();
+          std::cout<<"nb diff_nodes "<<diff_node.size()<<std::endl;
       for (Node* dnode : diff_nodes) {
         auto diff_graph = std::move(dnode->g(attr::Subgraph));
         std::cout<<"diff graph "<<std::endl;
