@@ -1292,7 +1292,15 @@ const std::vector<std::string> functions = {
 
             return torch.__interpolate(input, size, scale_factor, mode, align_corners), backward
 
+      )",
+    R"(
+        def gradclamp(self,min: Optional[number],max: Optional[number]):
+            def backward(grad_output):
+                grad_self = grad_output.clamp(min,max)
+                return grad_self, None, None
+            return self, backward
       )"};
+};
 std::unordered_map<std::string, GradientPair> schema_to_graphs;
 
 // This map is a workaround to cache compiled gradient_pairs. Ideally this graph
