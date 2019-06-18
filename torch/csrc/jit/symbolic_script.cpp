@@ -1397,10 +1397,14 @@ void loadModule(const script::CompilationUnit& module) {
         loaded_schema.arguments(),
         {originalReturnType(new_tuple->type()->expect<TupleType>())});
 
+    std::cout<<"loaded schema name "<<loaded_schema.name()<<std::endl;
+    std::cout<<"loaded overload name"<<std::endl;
+    std::cout<<loaded_schema.overload_name()<<std::endl;
+
     // modify canonical string for function overloading
     // prefer not to modify the schema name
     auto schema_string = overloadedSchemaString(actual_schema);
-
+    std::cout<<"schema_string "<<schema_string<<std::endl;
     schema_to_graphs[schema_string] = std::move(pair);
   }
 }
